@@ -48,7 +48,7 @@ const CartScreen = () => {
 
   const checkoutHandler = () => {
     dispatch(saveShippingAddress({}));
-    navigate(`/login?redirect=/shipping`);
+    navigate(`/placeorder`);
   };
 
   return (

@@ -11,6 +11,7 @@ import {
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { jsPDF } from "jspdf";
 
 import { createOrder } from "../actions/orderActions";
 import CheckoutSteps from "../components/CheckoutSteps";
@@ -34,17 +35,32 @@ const PlaceOrderScreen = () => {
   const { order, success } = orderCreate;
 
   const placeOrderHandler = () => {
-    dispatch(
-      createOrder({
-        orderItems: cart.cartItems,
-        shippingAddress: cart.shippingAddress,
-        paymentMethod: cart.paymentMethod,
-        itemsPrice: cart.itemsPrice,
-        shippingPrice: cart.shippingPrice,
-        taxPrice: cart.taxPrice,
-        totalPrice: cart.totalPrice,
-      })
+    const pdf = new jsPDF();
+    pdf.text("Invoice", 20, 20);
+
+    let ypost;
+
+    cart.cartItems.map((item, index) => {
+      const yPos = 30 + index * 30;
+      ypost = yPos;
+      pdf.text(
+        `Item: ${item.name}, 
+        Quantity: ${item.qty}, 
+        Price: ${item.price},
+        Total:${+item.qty * item.price}`,
+        20,
+        yPos
+      );
+    });
+
+    pdf.text(
+      `Total Item price:${cart.itemsPrice},
+    Tax:${cart.taxPrice},
+    Price with tax:${cart.totalPrice}`,
+      20,
+      ypost + 50
     );
+    pdf.save("a4.pdf");
   };
 
   useEffect(() => {
@@ -60,29 +76,6 @@ const PlaceOrderScreen = () => {
       <Grid templateColumns="3fr 2fr" gap="20">
         {/* Column 1 */}
         <Flex direction="column">
-          {/* Shipping */}
-          <Box borderBottom="1px" py="6" borderColor="gray.300">
-            <Heading as="h2" mb="3" fontSize="2xl" fontWeight="semibold">
-              Shipping
-            </Heading>
-            <Text>
-              <strong>Address: </strong>
-              {cart.shippingAddress.address}, {cart.shippingAddress.city},{" "}
-              {cart.shippingAddress.postalCode}, {cart.shippingAddress.country}
-            </Text>
-          </Box>
-
-          {/* Payment Method */}
-          <Box borderBottom="1px" py="6" borderColor="gray.300">
-            <Heading as="h2" mb="3" fontSize="2xl" fontWeight="semibold">
-              Payment Method
-            </Heading>
-            <Text>
-              <strong>Method: </strong>
-              {cart.paymentMethod.toUpperCase()}
-            </Text>
-          </Box>
-
           {/* Order Items */}
           <Box borderBottom="1px" py="6" borderColor="gray.300">
             <Heading as="h2" mb="3" fontSize="2xl" fontWeight="semibold">
@@ -159,20 +152,6 @@ const PlaceOrderScreen = () => {
               </Text>
             </Flex>
 
-            {/* Shipping Price */}
-            <Flex
-              borderBottom="1px"
-              py="2"
-              borderColor="gray.200"
-              alignitems="center"
-              justifyContent="space-between"
-            >
-              <Text fontSize="xl">Shipping</Text>
-              <Text fontWeight="bold" fontSize="xl">
-                ₹{cart.shippingPrice}
-              </Text>
-            </Flex>
-
             {/* Tax Price */}
             <Flex
               borderBottom="1px"
@@ -210,7 +189,7 @@ const PlaceOrderScreen = () => {
             onClick={placeOrderHandler}
             disabled={cart.cartItems === 0}
           >
-            Place Order
+            Get Bill
           </Button>
         </Flex>
       </Grid>
